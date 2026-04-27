@@ -1,11 +1,34 @@
-<div align="center">
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+# EduReserve - Sistema de Reservas Escolares
 
-  <h1>Built with AI Studio</h2>
+Sistema leve e intuitivo desenvolvido para gestão de recursos e espaços em ambiente escolar.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Funcionalidades
+- **Dashboard Inteligente**: Visualização imediata das reservas do dia atual.
+- **Gestão de Recursos**: Cadastro de laboratórios, projetores, tablets e outros materiais.
+- **Reservas sem Conflitos**: Validação automática de horários para evitar reservas duplicadas do mesmo recurso.
+- **Interface Moderna**: Design limpo, responsivo e focado na usabilidade.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Acesso Rápido (Dados Iniciais)
+- **E-mail**: `admin@escola.com`
+- **Senha**: `admin123`
 
-</div>
+## Tecnologias Utilizadas
+- **Backend**: Node.js com Express (TypeScript)
+- **Frontend**: React com Tailwind CSS
+- **Banco de Dados**: SQLite (Relacional, leve e rápido)
+- **Animações**: Motion
+- **Ícones**: Lucide React
+
+## Como Instalar e Rodar Localmente
+1. Certifique-se de ter o Node.js instalado.
+2. Clone o repositório.
+3. Execute `npm install` para instalar as dependências.
+4. Execute `npm run dev` para iniciar o servidor de desenvolvimento.
+5. O sistema estará disponível em `http://localhost:3000`.
+
+## Estrutura do Projeto
+- `server.ts`: Servidor Express e lógica de banco de dados.
+- `src/App.tsx`: Roteamento e layout principal.
+- `src/components/`: Componentes da interface (Dashboard, Reservas, Recursos, Login).
+- `database.db`: Arquivo de banco de dados SQLite (gerado automaticamente).

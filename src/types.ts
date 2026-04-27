@@ -1,0 +1,30 @@
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | 'teacher';
+}
+
+export interface Resource {
+  id: number;
+  name: string;
+  type: string;
+  description?: string;
+  active: boolean;
+}
+
+export interface Reservation {
+  id: number;
+  resource_id: number;
+  user_id: number;
+  responsible_name: string;
+  group_or_sector: string;
+  reservation_date: string;
+  start_time: string;
+  end_time: string;
+  observation?: string;
+  status: 'reserved' | 'cancelled' | 'completed';
+  resource_name?: string; // Joined
+  resource_type?: string; // Joined
+}
