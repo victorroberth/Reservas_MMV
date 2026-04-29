@@ -1,6 +1,5 @@
 
 import express from 'express';
-import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
@@ -9,6 +8,12 @@ import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+console.log('--- Server Diagnostic ---');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('SUPABASE_URL present:', !!process.env.SUPABASE_URL);
+console.log('SUPABASE_SERVICE_ROLE_KEY present:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+console.log('-------------------------');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,7 +26,9 @@ function getSupabase(): any {
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Configuração do Supabase ausente. Por favor, configure SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY nas configurações (Settings) do projeto.');
+      const errorMsg = 'Configuração do Supabase ausente. Verifique se SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY estão configurados no Settings do AI Studio ou no Dashboard do Vercel.';
+      console.error(errorMsg);
+      throw new Error(errorMsg);
     }
     supabaseClient = createClient(supabaseUrl, supabaseKey);
   }
@@ -371,6 +378,7 @@ async function startServer() {
 
   // Vite Middleware
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -390,4 +398,7 @@ async function startServer() {
   });
 }
 
-startServer();
+startServer().catch(err => {
+  console.error('SERVER FATAL ERROR DURING STARTUP:', err);
+  process.exit(1);
+});
