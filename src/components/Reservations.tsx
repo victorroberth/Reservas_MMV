@@ -31,6 +31,7 @@ export default function Reservations({ user }: ReservationsProps) {
   const [filterDate, setFilterDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   
   // Form State
+  const [selectedType, setSelectedType] = useState('');
   const [resourceId, setResourceId] = useState('');
   const [responsibleName, setResponsibleName] = useState(user.name);
   const [groupOrSector, setGroupOrSector] = useState('');
@@ -163,7 +164,13 @@ export default function Reservations({ user }: ReservationsProps) {
 
   const openModal = () => {
     setError('');
-    setResourceId(resources[0]?.id.toString() || '');
+    const types = Array.from(new Set(resources.map(r => r.type)));
+    const firstType = types[0] || '';
+    setSelectedType(firstType);
+    
+    const firstResource = resources.find(r => r.type === firstType);
+    setResourceId(firstResource?.id.toString() || '');
+    
     setResponsibleName(user.name);
     setGroupOrSector('');
     setResDate(format(new Date(), 'yyyy-MM-dd'));
@@ -174,6 +181,17 @@ export default function Reservations({ user }: ReservationsProps) {
   };
 
   const closeModal = () => setIsModalOpen(false);
+
+  // Derived data
+  const resourceTypes = Array.from(new Set(resources.map(r => r.type)));
+  const filteredResources = resources.filter(r => r.type === selectedType);
+
+  // Auto-select first resource when type changes
+  useEffect(() => {
+    if (selectedType && !filteredResources.some(r => r.id.toString() === resourceId)) {
+      setResourceId(filteredResources[0]?.id.toString() || '');
+    }
+  }, [selectedType, resources]);
 
   return (
     <div className="space-y-8">
@@ -316,15 +334,30 @@ export default function Reservations({ user }: ReservationsProps) {
               )}
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Recurso</label>
+                  <select
+                    required
+                    className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                  >
+                    <option value="" disabled>Selecione o tipo</option>
+                    {resourceTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Recurso</label>
                   <select
                     required
                     className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
                     value={resourceId}
                     onChange={(e) => setResourceId(e.target.value)}
+                    disabled={!selectedType}
                   >
-                    {resources.map(r => <option key={r.id} value={r.id}>{r.name} ({r.type})</option>)}
+                    <option value="" disabled>Selecione o recurso</option>
+                    {filteredResources.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
                 </div>
 

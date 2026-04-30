@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, Resource } from '../types';
-import { Plus, Pencil, Trash2, Package, Check, X, Monitor, Projector, Mic2, Tablet, Laptop, Box } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Check, X, Monitor, Projector, Mic2, Tablet, Laptop, Box, FlaskConical, Filter } from 'lucide-react';
 
 interface ResourcesProps {
   user: User;
@@ -12,6 +12,7 @@ export default function Resources({ user }: ResourcesProps) {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [selectedType, setSelectedType] = useState<string>('Todos');
   
   // Form State
   const [name, setName] = useState('');
@@ -92,12 +93,16 @@ export default function Resources({ user }: ResourcesProps) {
 
   const getResourceIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case 'laboratório': return <Monitor className="w-5 h-5" />;
+      case 'laboratório': return <FlaskConical className="w-5 h-5" />;
       case 'equipamento': return <Projector className="w-5 h-5" />;
       case 'sala': return <Box className="w-5 h-5" />;
       default: return <Package className="w-5 h-5" />;
     }
   };
+
+  const filteredResources = selectedType === 'Todos' 
+    ? resources 
+    : resources.filter(r => r.type === selectedType);
 
   return (
     <div className="space-y-8">
@@ -115,13 +120,36 @@ export default function Resources({ user }: ResourcesProps) {
         </button>
       </header>
 
+      {/* Filter Tabs */}
+      <div className="flex flex-wrap items-center gap-2 pb-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 pr-4 border-r border-slate-200">
+          <Filter className="w-4 h-4 text-slate-400" />
+          <span className="text-sm font-medium text-slate-500">Filtrar:</span>
+        </div>
+        {['Todos', ...resourceTypes].map((type) => (
+          <button
+            key={type}
+            onClick={() => setSelectedType(type)}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+              selectedType === type
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            {type}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full py-12 text-center text-slate-400">Carregando recursos...</div>
-        ) : resources.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-slate-400">Nenhum recurso cadastrado.</div>
+        ) : filteredResources.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-slate-400">
+            {selectedType === 'Todos' ? 'Nenhum recurso cadastrado.' : `Nenhum recurso do tipo "${selectedType}" encontrado.`}
+          </div>
         ) : (
-          resources.map((resource) => (
+          filteredResources.map((resource) => (
             <div key={resource.id} className="glass-card p-6 flex flex-col group">
               <div className="flex justify-between items-start mb-4">
                 <div className={`p-3 rounded-xl ${resource.active ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
