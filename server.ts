@@ -231,7 +231,8 @@ async function startServer() {
 
     try {
       const client = getSupabase();
-      // Get user role
+      
+      // Get user role for validation
       const { data: user } = await client
         .from('users')
         .select('role')
@@ -259,32 +260,40 @@ async function startServer() {
         }
       }
 
-      // Conflict Validation
-      const { data: conflicts, error: conflictError } = await client
+      // Conflict Validation for multiple slots
+      // We fetch all reservations for this resource and date
+      const { data: existingReservations, error: fetchError } = await client
         .from('reservations')
-        .select('*')
+        .select('start_time')
         .eq('resource_id', resource_id)
         .eq('reservation_date', reservation_date)
-        .eq('status', 'reserved')
-        .lte('start_time', end_time)
-        .gte('end_time', start_time);
+        .eq('status', 'reserved');
 
-      if (conflictError) return res.status(500).json({ error: conflictError.message });
+      if (fetchError) return res.status(500).json({ error: fetchError.message });
 
-      if (conflicts && conflicts.length > 0) {
-        return res.status(400).json({ error: 'Este recurso já está reservado para este horário.' });
+      const newSlots = start_time.split(',');
+      
+      if (existingReservations) {
+        for (const resv of existingReservations) {
+          const existingSlots = resv.start_time.split(',');
+          const conflict = newSlots.find(slot => existingSlots.includes(slot));
+          if (conflict) {
+            return res.status(400).json({ error: `O ${conflict}º horário já está reservado por outro professor.` });
+          }
+        }
       }
 
+      // Insert single record with all slots
       const { data, error } = await client
         .from('reservations')
         .insert([{
-          resource_id, 
-          user_id, 
-          responsible_name, 
-          group_or_sector, 
-          reservation_date, 
-          start_time, 
-          end_time, 
+          resource_id,
+          user_id,
+          responsible_name,
+          group_or_sector,
+          reservation_date,
+          start_time, // String with comma-separated slot numbers (e.g. "1,2,7")
+          end_time: start_time, // Keeping end_time in sync for legacy compatibility
           observation
         }])
         .select();

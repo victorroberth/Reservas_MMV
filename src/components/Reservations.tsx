@@ -15,6 +15,7 @@ import {
   Search
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { TIME_SLOTS } from '../constants';
 
 interface ReservationsProps {
   user: User;
@@ -36,25 +37,16 @@ export default function Reservations({ user }: ReservationsProps) {
   const [responsibleName, setResponsibleName] = useState(user.name);
   const [groupOrSector, setGroupOrSector] = useState('');
   const [resDate, setResDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [startTime, setStartTime] = useState('01');
-  const [endTime, setEndTime] = useState('01');
+  const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
   const [observation, setObservation] = useState('');
 
-  const schoolPeriods = [
-    { id: '01', label: '1º Horário' },
-    { id: '02', label: '2º Horário' },
-    { id: '03', label: '3º Horário' },
-    { id: '04', label: '4º Horário' },
-    { id: '05', label: '5º Horário' },
-    { id: '06', label: '6º Horário' },
-    { id: '07', label: '7º Horário' },
-    { id: '08', label: '8º Horário' },
-    { id: '09', label: '9º Horário' },
-  ];
-
-  const formatPeriod = (p: string) => {
-    const period = schoolPeriods.find(sp => sp.id === p);
-    return period ? period.label : p;
+  const formatPeriod = (startTime: string) => {
+    const slots = startTime.split(',');
+    const labels = slots.map(sId => {
+      const slot = TIME_SLOTS.find(s => s.startTime === sId);
+      return slot ? slot.label : sId;
+    });
+    return labels.join(', ');
   };
 
   useEffect(() => {
@@ -81,8 +73,8 @@ export default function Reservations({ user }: ReservationsProps) {
     e.preventDefault();
     setError('');
 
-    if (startTime > endTime) {
-      setError('O horário de fim não pode ser anterior ao de início.');
+    if (selectedSlots.length === 0) {
+      setError('Por favor, selecione pelo menos um horário.');
       return;
     }
 
@@ -111,6 +103,13 @@ export default function Reservations({ user }: ReservationsProps) {
     }
 
     try {
+      // Sort slots in numeric order
+      const sortedSlots = [...selectedSlots].sort((a, b) => parseInt(a) - parseInt(b));
+      const slotStartTimes = sortedSlots.map(sId => {
+        const slot = TIME_SLOTS.find(s => s.id === sId);
+        return slot?.startTime;
+      }).join(',');
+
       const res = await fetch('/api/reservations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,8 +119,8 @@ export default function Reservations({ user }: ReservationsProps) {
           responsible_name: responsibleName,
           group_or_sector: groupOrSector,
           reservation_date: resDate,
-          start_time: startTime,
-          end_time: endTime,
+          start_time: slotStartTimes,
+          end_time: slotStartTimes,
           observation
         }),
       });
@@ -129,6 +128,7 @@ export default function Reservations({ user }: ReservationsProps) {
       if (res.ok) {
         fetchData();
         closeModal();
+        setSelectedSlots([]);
       } else {
         const data = await res.json();
         setError(data.error || 'Erro ao criar reserva');
@@ -174,8 +174,7 @@ export default function Reservations({ user }: ReservationsProps) {
     setResponsibleName(user.name);
     setGroupOrSector('');
     setResDate(format(new Date(), 'yyyy-MM-dd'));
-    setStartTime('01');
-    setEndTime('01');
+    setSelectedSlots([]);
     setObservation('');
     setIsModalOpen(true);
   };
@@ -260,9 +259,7 @@ export default function Reservations({ user }: ReservationsProps) {
                       </div>
                       <div className="text-xs text-slate-500 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {res.start_time === res.end_time 
-                          ? formatPeriod(res.start_time) 
-                          : `${formatPeriod(res.start_time)} - ${formatPeriod(res.end_time)}`}
+                        {formatPeriod(res.start_time)}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -392,28 +389,29 @@ export default function Reservations({ user }: ReservationsProps) {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Horário Início</label>
-                    <select
-                      required
-                      className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                    >
-                      {schoolPeriods.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Horário Fim</label>
-                    <select
-                      required
-                      className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
-                    >
-                      {schoolPeriods.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
-                    </select>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Selecione os Horários</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {TIME_SLOTS.map((slot) => (
+                      <button
+                        key={slot.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedSlots(prev => 
+                            prev.includes(slot.id) 
+                              ? prev.filter(id => id !== slot.id) 
+                              : [...prev, slot.id]
+                          );
+                        }}
+                        className={`px-3 py-3 text-sm font-semibold rounded-lg border transition-all text-center ${
+                          selectedSlots.includes(slot.id)
+                            ? 'bg-blue-600 border-blue-600 text-white shadow-md'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300'
+                        }`}
+                      >
+                        {slot.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 

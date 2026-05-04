@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { TIME_SLOTS } from '../constants';
 
 interface DashboardProps {
   user: User;
@@ -103,11 +104,18 @@ export default function Dashboard({ user }: DashboardProps) {
     ? reservations 
     : reservations.filter(r => r.resource_type === filterType);
 
-  const resourceTypes = ['Todos', ...Array.from(new Set(reservations.map(r => r.resource_type || 'Outros')))];
+  const resourceTypes = [
+    'Todos', 
+    ...Array.from(new Set(reservations.map(r => r.resource_type || 'Outros')))
+  ];
 
-  const formatPeriod = (p: string) => {
-    const periodNumber = parseInt(p);
-    return isNaN(periodNumber) ? p : `${periodNumber}º Horário`;
+  const formatPeriod = (startTime: string) => {
+    const slots = startTime.split(',');
+    const labels = slots.map(sId => {
+      const slot = TIME_SLOTS.find(s => s.startTime === sId);
+      return slot ? slot.label : sId;
+    });
+    return labels.join(', ');
   };
 
   return (
@@ -220,9 +228,7 @@ export default function Dashboard({ user }: DashboardProps) {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-slate-700 font-medium">
                         <Clock className="w-4 h-4 text-slate-400" />
-                        {res.start_time === res.end_time 
-                          ? formatPeriod(res.start_time) 
-                          : `${formatPeriod(res.start_time)} - ${formatPeriod(res.end_time)}`}
+                        {formatPeriod(res.start_time)}
                       </div>
                     </td>
                     <td className="px-6 py-4">
