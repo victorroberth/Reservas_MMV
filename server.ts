@@ -37,8 +37,22 @@ function getSupabase(): any {
 
 async function startServer() {
   const app = express();
+  app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+  });
   app.use(express.json());
   app.use(cors());
+
+  // Health Check
+  app.get('/api/health', (req, res) => {
+    res.json({ 
+      status: 'ok', 
+      time: new Date().toISOString(), 
+      env: process.env.NODE_ENV,
+      cwd: process.cwd()
+    });
+  });
 
   // API Routes
   
@@ -394,10 +408,21 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = path.resolve(process.cwd(), 'dist');
+    const indexPath = path.join(distPath, 'index.html');
+    
+    import('fs').then(fs => {
+      if (fs.existsSync(indexPath)) {
+        console.log('Production mode: dist/index.html found at', indexPath);
+      } else {
+        console.error('Production mode Error: dist/index.html NOT FOUND at', indexPath);
+        console.log('Current directory contents:', fs.readdirSync(process.cwd()));
+      }
+    });
+
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      res.sendFile(indexPath);
     });
   }
 
