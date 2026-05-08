@@ -78,8 +78,8 @@ export default function Reservations({ user }: ReservationsProps) {
       return;
     }
 
-    // Rule for Teachers - All Resources
-    if (user.role === 'teacher') {
+    // Rule for Teachers and Leaders - All Resources
+    if (user.role === 'teacher' || user.role === 'leader') {
       const now = new Date();
       const todayStr = format(now, 'yyyy-MM-dd');
       const tomorrow = new Date(now);

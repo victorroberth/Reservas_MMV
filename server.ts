@@ -253,8 +253,8 @@ async function startServer() {
         .eq('id', user_id)
         .single();
 
-      // Rule for Teachers - All Resources
-      if (user && user.role === 'teacher') {
+      // Rule for Teachers and Leaders - All Resources
+      if (user && (user.role === 'teacher' || user.role === 'leader')) {
         const now = new Date();
         const todayStr = format(now, 'yyyy-MM-dd');
         const tomorrow = new Date(now);
@@ -358,6 +358,84 @@ async function startServer() {
       }
 
       res.status(403).json({ error: 'Você não tem permissão para excluir esta reserva.' });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  // Extraclasse
+  app.get('/api/extraclasse', async (req, res) => {
+    try {
+      const { data: records, error } = await getSupabase()
+        .from('extraclasse')
+        .select(`
+          *,
+          user:users(name)
+        `)
+        .order('activity_date', { ascending: false });
+      
+      if (error) return res.status(500).json({ error: error.message });
+      
+      const flattened = (records || []).map(r => ({
+        ...r,
+        user_name: (r.user as any)?.name
+      }));
+      
+      res.json(flattened);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/extraclasse', async (req, res) => {
+    const { user_id, student_name, class_name, requesting_teacher, activity_date, time_slots, reason, observation } = req.body;
+    try {
+      const { data, error } = await getSupabase()
+        .from('extraclasse')
+        .insert([{
+          user_id,
+          student_name,
+          class_name,
+          requesting_teacher,
+          activity_date,
+          time_slots,
+          reason,
+          observation,
+          status: 'pending'
+        }])
+        .select();
+
+      if (error) return res.status(500).json({ error: error.message });
+      res.json({ id: data[0].id });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.patch('/api/extraclasse/:id/status', async (req, res) => {
+    const { status } = req.body;
+    try {
+      const { error } = await getSupabase()
+        .from('extraclasse')
+        .update({ status })
+        .eq('id', req.params.id);
+
+      if (error) return res.status(500).json({ error: error.message });
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.delete('/api/extraclasse/:id', async (req, res) => {
+    try {
+      const { error } = await getSupabase()
+        .from('extraclasse')
+        .delete()
+        .eq('id', req.params.id);
+
+      if (error) return res.status(500).json({ error: error.message });
+      res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

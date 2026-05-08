@@ -7,6 +7,7 @@ import {
   CalendarDays, 
   LogOut, 
   School,
+  GraduationCap,
   User as UserIcon,
   Users as UsersIcon
 } from 'lucide-react';
@@ -22,8 +23,9 @@ interface SidebarProps {
 
 export default function Sidebar({ currentView, setView, user, onLogout, isOpen, onClose }: SidebarProps) {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'teacher'] },
-    { id: 'reservations', label: 'Reservas', icon: CalendarDays, roles: ['admin', 'teacher'] },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'teacher', 'leader'] },
+    { id: 'reservations', label: 'Reservas', icon: CalendarDays, roles: ['admin', 'teacher', 'leader'] },
+    { id: 'extraclasse', label: 'Extraclasse', icon: GraduationCap, roles: ['admin', 'teacher', 'leader'] },
     { id: 'resources', label: 'Recursos', icon: Package, roles: ['admin'] },
     { id: 'users', label: 'Usuários', icon: UsersIcon, roles: ['admin'] },
   ];
@@ -81,7 +83,9 @@ export default function Sidebar({ currentView, setView, user, onLogout, isOpen, 
           </div>
           <div className="overflow-hidden">
             <p className="text-sm font-semibold text-slate-800 truncate">{user.name}</p>
-            <p className="text-xs text-slate-500 capitalize">{user.role}</p>
+            <p className="text-xs text-slate-500 capitalize">
+              {user.role === 'admin' ? 'Administrador' : user.role === 'leader' ? 'Líder de Sala' : 'Professor'}
+            </p>
           </div>
         </div>
         

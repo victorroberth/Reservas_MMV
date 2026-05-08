@@ -3,7 +3,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'admin' | 'teacher';
+  role: 'admin' | 'teacher' | 'leader';
 }
 
 export interface Resource {
@@ -27,4 +27,19 @@ export interface Reservation {
   status: 'reserved' | 'cancelled' | 'completed';
   resource_name?: string; // Joined
   resource_type?: string; // Joined
+}
+
+export interface Extraclasse {
+  id: number;
+  user_id: number;
+  student_name: string;
+  class_name: string;
+  requesting_teacher: string;
+  activity_date: string;
+  time_slots: string; // Comma separated slot IDs
+  reason: string;
+  observation?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+  created_at?: string;
+  user_name?: string; // Joined
 }

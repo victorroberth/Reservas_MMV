@@ -5,6 +5,7 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Resources from './components/Resources';
 import Reservations from './components/Reservations';
+import Extraclasse from './components/Extraclasse';
 import Users from './components/Users';
 import Sidebar from './components/Sidebar';
 import { motion, AnimatePresence } from 'motion/react';
@@ -15,7 +16,7 @@ export default function App() {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
-  const [currentView, setCurrentView] = useState<'dashboard' | 'resources' | 'reservations' | 'users'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'resources' | 'reservations' | 'extraclasse' | 'users'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -94,6 +95,7 @@ export default function App() {
               {currentView === 'dashboard' && <Dashboard user={user} />}
               {currentView === 'resources' && <Resources user={user} />}
               {currentView === 'reservations' && <Reservations user={user} />}
+              {currentView === 'extraclasse' && <Extraclasse user={user} />}
               {currentView === 'users' && <Users user={user} />}
             </motion.div>
           </AnimatePresence>

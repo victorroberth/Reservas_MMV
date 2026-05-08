@@ -18,7 +18,8 @@ export default function Users({ user: currentUser }: UsersProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'admin' | 'teacher'>('teacher');
+  const [role, setRole] = useState<'admin' | 'teacher' | 'leader'>('teacher');
+  const [filterRole, setFilterRole] = useState<'all' | 'admin' | 'teacher' | 'leader'>('all');
 
   useEffect(() => {
     fetchUsers();
@@ -36,6 +37,10 @@ export default function Users({ user: currentUser }: UsersProps) {
       setLoading(false);
     }
   };
+
+  const filteredUsers = filterRole === 'all' 
+    ? users 
+    : users.filter(u => u.role === filterRole);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +102,7 @@ export default function Users({ user: currentUser }: UsersProps) {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Gestão de Usuários</h1>
           <p className="text-slate-500 text-sm md:text-base">Cadastre e gerencie os professores e administradores do sistema.</p>
@@ -110,6 +115,49 @@ export default function Users({ user: currentUser }: UsersProps) {
           Novo Usuário
         </button>
       </header>
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setFilterRole('all')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            filterRole === 'all' 
+              ? 'bg-slate-800 text-white' 
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          Todos
+        </button>
+        <button
+          onClick={() => setFilterRole('admin')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            filterRole === 'admin' 
+              ? 'bg-purple-600 text-white' 
+              : 'bg-white text-purple-600 border border-purple-100 hover:bg-purple-50'
+          }`}
+        >
+          Administradores
+        </button>
+        <button
+          onClick={() => setFilterRole('teacher')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            filterRole === 'teacher' 
+              ? 'bg-blue-600 text-white' 
+              : 'bg-white text-blue-600 border border-blue-100 hover:bg-blue-50'
+          }`}
+        >
+          Professores
+        </button>
+        <button
+          onClick={() => setFilterRole('leader')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            filterRole === 'leader' 
+              ? 'bg-amber-600 text-white' 
+              : 'bg-white text-amber-600 border border-amber-100 hover:bg-amber-50'
+          }`}
+        >
+          Líderes de Sala
+        </button>
+      </div>
 
       <div className="glass-card overflow-hidden">
         <div className="overflow-x-auto">
@@ -125,10 +173,10 @@ export default function Users({ user: currentUser }: UsersProps) {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-400">Carregando usuários...</td></tr>
-              ) : users.length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-400">Nenhum usuário cadastrado.</td></tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-400">Nenhum usuário encontrado para este filtro.</td></tr>
               ) : (
-                users.map((u) => (
+                filteredUsers.map((u) => (
                   <tr key={u.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -146,10 +194,12 @@ export default function Users({ user: currentUser }: UsersProps) {
                     </td>
                     <td className="px-6 py-4">
                       <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        u.role === 'admin' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
+                        u.role === 'admin' ? 'bg-purple-50 text-purple-600' : 
+                        u.role === 'leader' ? 'bg-amber-50 text-amber-600' :
+                        'bg-blue-50 text-blue-600'
                       }`}>
                         {u.role === 'admin' ? <ShieldCheck className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
-                        {u.role === 'admin' ? 'Administrador' : 'Professor'}
+                        {u.role === 'admin' ? 'Administrador' : u.role === 'leader' ? 'Líder de Sala' : 'Professor'}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -241,6 +291,7 @@ export default function Users({ user: currentUser }: UsersProps) {
                   onChange={(e) => setRole(e.target.value as any)}
                 >
                   <option value="teacher">Professor</option>
+                  <option value="leader">Líder de Sala</option>
                   <option value="admin">Administrador</option>
                 </select>
               </div>

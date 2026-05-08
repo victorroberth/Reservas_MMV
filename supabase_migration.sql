@@ -33,6 +33,21 @@ CREATE TABLE IF NOT EXISTS reservations (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create extraclasse table
+CREATE TABLE IF NOT EXISTS extraclasse (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  student_name TEXT NOT NULL,
+  class_name TEXT NOT NULL,
+  requesting_teacher TEXT NOT NULL,
+  activity_date DATE NOT NULL,
+  time_slots TEXT NOT NULL, -- Comma separated slot labels
+  reason TEXT NOT NULL,
+  observation TEXT,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Initial Data
 INSERT INTO users (name, email, password, role) 
 VALUES ('Administrador Master', 'admin.mmv@gmail.com', 'admin*MMV_123', 'admin')
