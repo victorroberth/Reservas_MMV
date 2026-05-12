@@ -192,6 +192,27 @@ export default function Reservations({ user }: ReservationsProps) {
     }
   }, [selectedType, resources]);
 
+  // Group reservations by resource, date and responsible to show multiple slots as one row
+  const groupedReservations = reservations.reduce((acc: Reservation[], current) => {
+    const existing = acc.find(r => 
+      r.resource_id === current.resource_id && 
+      r.reservation_date === current.reservation_date && 
+      r.responsible_name === current.responsible_name &&
+      r.group_or_sector === current.group_or_sector &&
+      r.status === current.status
+    );
+
+    if (existing) {
+      // Merge slots and remove duplicates
+      const slots = [...existing.start_time.split(','), ...current.start_time.split(',')];
+      const uniqueSlots = Array.from(new Set(slots)).sort((a, b) => parseInt(a) - parseInt(b));
+      existing.start_time = uniqueSlots.join(',');
+      return acc;
+    }
+    
+    return [...acc, { ...current }];
+  }, []);
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
@@ -248,10 +269,10 @@ export default function Reservations({ user }: ReservationsProps) {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400">Carregando...</td></tr>
-              ) : reservations.length === 0 ? (
+              ) : groupedReservations.length === 0 ? (
                 <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400">Nenhuma reserva encontrada para esta data.</td></tr>
               ) : (
-                reservations.map((res) => (
+                groupedReservations.map((res) => (
                   <tr key={res.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="text-sm font-semibold text-slate-800">

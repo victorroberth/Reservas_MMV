@@ -104,6 +104,27 @@ export default function Dashboard({ user }: DashboardProps) {
     ? reservations 
     : reservations.filter(r => r.resource_type === filterType);
 
+  // Group reservations by resource, and responsible to show multiple slots as one row
+  const groupedReservations = filteredReservations.reduce((acc: Reservation[], current) => {
+    const existing = acc.find(r => 
+      r.resource_id === current.resource_id && 
+      r.reservation_date === current.reservation_date && 
+      r.responsible_name === current.responsible_name &&
+      r.group_or_sector === current.group_or_sector &&
+      r.status === current.status
+    );
+
+    if (existing) {
+      // Merge slots and remove duplicates
+      const slots = [...existing.start_time.split(','), ...current.start_time.split(',')];
+      const uniqueSlots = Array.from(new Set(slots)).sort((a, b) => parseInt(a) - parseInt(b));
+      existing.start_time = uniqueSlots.join(',');
+      return acc;
+    }
+    
+    return [...acc, { ...current }];
+  }, []);
+
   const resourceTypes = [
     'Todos', 
     ...Array.from(new Set(reservations.map(r => r.resource_type || 'Outros')))
@@ -213,7 +234,7 @@ export default function Dashboard({ user }: DashboardProps) {
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-slate-400">Carregando reservas...</td>
                 </tr>
-              ) : filteredReservations.length === 0 ? (
+              ) : groupedReservations.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-2 text-slate-400">
@@ -223,7 +244,7 @@ export default function Dashboard({ user }: DashboardProps) {
                   </td>
                 </tr>
               ) : (
-                filteredReservations.map((res) => (
+                groupedReservations.map((res) => (
                   <tr key={res.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-slate-700 font-medium">
