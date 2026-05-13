@@ -441,6 +441,107 @@ async function startServer() {
     }
   });
 
+  // Daily Attendance
+  app.get('/api/attendance', async (req, res) => {
+    const { date } = req.query;
+    const targetDate = (date as string) || format(new Date(), 'yyyy-MM-dd');
+    
+    try {
+      const { data: records, error } = await getSupabase()
+        .from('daily_attendance')
+        .select(`
+          *,
+          user:users(name)
+        `)
+        .eq('attendance_date', targetDate)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        if (error.message?.includes('daily_attendance') && error.message?.includes('not found')) {
+          return res.status(500).json({ 
+            error: 'A tabela "daily_attendance" não foi encontrada. Por favor, execute o script SQL de migração no painel do Supabase.',
+            migrationRequired: true
+          });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      
+      const flattened = (records || []).map(r => ({
+        ...r,
+        responsible_name: (r.user as any)?.name
+      }));
+      
+      res.json(flattened);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/attendance', async (req, res) => {
+    const { user_id, class_name, student_count, attendance_date } = req.body;
+    
+    if (!class_name || student_count === undefined || student_count < 0) {
+      return res.status(400).json({ error: 'Dados inválidos. Verifique sala e quantidade.' });
+    }
+
+    try {
+      const { data, error } = await getSupabase()
+        .from('daily_attendance')
+        .upsert({
+          user_id,
+          class_name,
+          student_count: parseInt(student_count),
+          attendance_date
+        }, {
+          onConflict: 'class_name,attendance_date'
+        })
+        .select();
+
+      if (error) {
+        if (error.message?.includes('daily_attendance') && error.message?.includes('not found')) {
+          return res.status(500).json({ error: 'A tabela "daily_attendance" não foi encontrada. Por favor, execute o script SQL de migração no painel do Supabase.' });
+        }
+        return res.status(500).json({ error: error.message });
+      }
+      res.json(data[0]);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.delete('/api/attendance/:id', async (req, res) => {
+    try {
+      const { error } = await getSupabase()
+        .from('daily_attendance')
+        .delete()
+        .eq('id', req.params.id);
+
+      if (error) return res.status(500).json({ error: error.message });
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.put('/api/attendance/:id', async (req, res) => {
+    const { class_name, student_count } = req.body;
+    try {
+      const { data, error } = await getSupabase()
+        .from('daily_attendance')
+        .update({
+          class_name,
+          student_count: parseInt(student_count),
+        })
+        .eq('id', req.params.id)
+        .select();
+
+      if (error) return res.status(500).json({ error: error.message });
+      res.json(data[0]);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // Dashboard Stats
   app.get('/api/dashboard/stats', async (req, res) => {
     const { date } = req.query;
@@ -464,16 +565,41 @@ async function startServer() {
         .eq('reservation_date', targetDate)
         .eq('status', 'reserved');
 
-      if (countError) throw countError;
+      if (countError) {
+        console.error('Reservations count error:', countError);
+      }
+
+      let totalPresence = 0;
+      try {
+        const { data: attendanceData, error: attError } = await client
+          .from('daily_attendance')
+          .select('student_count')
+          .eq('attendance_date', targetDate);
+
+        if (attError) {
+          console.warn('Attendance query error (maybe table not created yet):', attError.message);
+        } else {
+          totalPresence = (attendanceData || []).reduce((sum, curr) => sum + curr.student_count, 0);
+        }
+      } catch (attErr) {
+        console.warn('Attendance fetch failed:', attErr);
+      }
 
       res.json({
         total: count || 0,
         labs: labsCount,
-        equip: equipCount
+        equip: equipCount,
+        presence: totalPresence
       });
     } catch (error: any) {
-      console.error('Stats Error:', error);
-      res.status(500).json({ error: error.message || 'Internal server error' });
+      console.error('Dashboard Stats Fatal Error:', error);
+      res.status(500).json({ 
+        total: 0, 
+        labs: 0, 
+        equip: 0, 
+        presence: 0,
+        error: error.message || 'Internal server error' 
+      });
     }
   });
 

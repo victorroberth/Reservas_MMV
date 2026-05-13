@@ -25,6 +25,7 @@ export default function Sidebar({ currentView, setView, user, onLogout, isOpen, 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'teacher', 'leader'] },
     { id: 'reservations', label: 'Reservas', icon: CalendarDays, roles: ['admin', 'teacher', 'leader'] },
+    { id: 'attendance', label: 'Presença do Dia', icon: School, roles: ['admin', 'teacher', 'leader'] },
     { id: 'extraclasse', label: 'Extraclasse', icon: GraduationCap, roles: ['admin', 'teacher', 'leader'] },
     { id: 'resources', label: 'Recursos', icon: Package, roles: ['admin'] },
     { id: 'users', label: 'Usuários', icon: UsersIcon, roles: ['admin'] },

@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard';
 import Resources from './components/Resources';
 import Reservations from './components/Reservations';
 import Extraclasse from './components/Extraclasse';
+import Attendance from './components/Attendance';
 import Users from './components/Users';
 import Sidebar from './components/Sidebar';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,7 +30,7 @@ export default function App() {
       return null;
     }
   });
-  const [currentView, setCurrentView] = useState<'dashboard' | 'resources' | 'reservations' | 'extraclasse' | 'users'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'resources' | 'reservations' | 'extraclasse' | 'attendance' | 'users'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -108,6 +109,7 @@ export default function App() {
               {currentView === 'dashboard' && <Dashboard user={user} />}
               {currentView === 'resources' && <Resources user={user} />}
               {currentView === 'reservations' && <Reservations user={user} />}
+              {currentView === 'attendance' && <Attendance user={user} />}
               {currentView === 'extraclasse' && <Extraclasse user={user} />}
               {currentView === 'users' && <Users user={user} />}
             </motion.div>

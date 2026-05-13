@@ -43,3 +43,13 @@ export interface Extraclasse {
   created_at?: string;
   user_name?: string; // Joined
 }
+
+export interface DailyAttendance {
+  id: number;
+  user_id: number;
+  class_name: string;
+  student_count: number;
+  attendance_date: string;
+  created_at?: string;
+  responsible_name?: string; // Joined
+}

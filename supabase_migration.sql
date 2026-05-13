@@ -48,6 +48,17 @@ CREATE TABLE IF NOT EXISTS extraclasse (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create daily_attendance table
+CREATE TABLE IF NOT EXISTS daily_attendance (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  class_name TEXT NOT NULL,
+  student_count INTEGER NOT NULL CHECK (student_count >= 0),
+  attendance_date DATE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(class_name, attendance_date)
+);
+
 -- Initial Data
 INSERT INTO users (name, email, password, role) 
 VALUES ('Administrador Master', 'admin.mmv@gmail.com', 'admin*MMV_123', 'admin')

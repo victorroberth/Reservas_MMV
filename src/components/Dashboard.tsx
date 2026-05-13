@@ -28,7 +28,7 @@ interface DashboardProps {
 
 export default function Dashboard({ user }: DashboardProps) {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [stats, setStats] = useState({ total: 0, labs: 0, equip: 0 });
+  const [stats, setStats] = useState({ total: 0, labs: 0, equip: 0, presence: 0 });
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<string>('Todos');
 
@@ -57,7 +57,7 @@ export default function Dashboard({ user }: DashboardProps) {
       console.log('[DEBUG] Dashboard Stats:', statsData);
       
       setReservations(Array.isArray(resData) ? resData : []);
-      setStats(statsData || { total: 0, labs: 0, equip: 0 });
+      setStats(statsData || { total: 0, labs: 0, equip: 0, presence: 0 });
     } catch (err) {
       console.error('[DEBUG] Dashboard Error:', err);
     } finally {
@@ -185,16 +185,27 @@ export default function Dashboard({ user }: DashboardProps) {
       </header>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card p-6 bg-blue-600 text-white border-none shadow-blue-100">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="p-6 bg-blue-600 text-white rounded-xl shadow-md shadow-blue-100/50">
           <div className="flex justify-between items-start mb-4">
             <div className="bg-white/20 p-2 rounded-lg">
-              <Calendar className="w-6 h-6" />
+              <Calendar className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xs font-medium bg-white/20 px-2 py-1 rounded-full">Hoje</span>
+            <span className="text-xs font-medium bg-white/20 px-2 py-1 rounded-full text-white">Hoje</span>
           </div>
           <p className="text-blue-100 text-sm font-medium">Total de Reservas</p>
-          <h3 className="text-3xl font-bold">{stats.total}</h3>
+          <h3 className="text-3xl font-bold text-white">{stats.total}</h3>
+        </div>
+
+        <div className="p-6 bg-emerald-600 text-white rounded-xl shadow-md shadow-emerald-100/50">
+          <div className="flex justify-between items-start mb-4">
+            <div className="bg-white/20 p-2 rounded-lg">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-xs font-medium bg-white/20 px-2 py-1 rounded-full text-white">Presença</span>
+          </div>
+          <p className="text-emerald-100 text-sm font-medium">Alunos na Escola</p>
+          <h3 className="text-3xl font-bold text-white">{stats.presence}</h3>
         </div>
 
         <div className="glass-card p-6">
