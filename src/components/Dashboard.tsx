@@ -100,6 +100,16 @@ export default function Dashboard({ user }: DashboardProps) {
     }
   };
 
+  const getResourceColorClass = (type: string) => {
+    const t = type?.toLowerCase() || '';
+    if (t.includes('laboratório')) return 'bg-emerald-50/40 hover:bg-emerald-100/60';
+    if (t.includes('sala')) return 'bg-blue-50/40 hover:bg-blue-100/60';
+    if (t.includes('equipamento') || t === 'notebook' || t === 'tablet' || t === 'projetor' || t === 'caixa de som') {
+      return 'bg-amber-50/40 hover:bg-amber-100/60';
+    }
+    return 'hover:bg-slate-50/50';
+  };
+
   const filteredReservations = filterType === 'Todos' 
     ? reservations 
     : reservations.filter(r => r.resource_type === filterType);
@@ -245,7 +255,7 @@ export default function Dashboard({ user }: DashboardProps) {
                 </tr>
               ) : (
                 groupedReservations.map((res) => (
-                  <tr key={res.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <tr key={res.id} className={`${getResourceColorClass(res.resource_type || '')} transition-colors group`}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-slate-700 font-medium">
                         <Clock className="w-4 h-4 text-slate-400" />

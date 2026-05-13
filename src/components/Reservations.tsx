@@ -49,6 +49,16 @@ export default function Reservations({ user }: ReservationsProps) {
     return labels.join(', ');
   };
 
+  const getResourceColorClass = (type: string) => {
+    const t = type?.toLowerCase() || '';
+    if (t.includes('laboratório')) return 'bg-emerald-50/40 hover:bg-emerald-100/60';
+    if (t.includes('sala')) return 'bg-blue-50/40 hover:bg-blue-100/60';
+    if (t.includes('equipamento') || t === 'notebook' || t === 'tablet' || t === 'projetor' || t === 'caixa de som') {
+      return 'bg-amber-50/40 hover:bg-amber-100/60';
+    }
+    return 'hover:bg-slate-50/50';
+  };
+
   useEffect(() => {
     fetchData();
   }, [filterDate]);
@@ -273,7 +283,7 @@ export default function Reservations({ user }: ReservationsProps) {
                 <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-400">Nenhuma reserva encontrada para esta data.</td></tr>
               ) : (
                 groupedReservations.map((res) => (
-                  <tr key={res.id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr key={res.id} className={`${getResourceColorClass(res.resource_type || '')} transition-colors`}>
                     <td className="px-6 py-4">
                       <div className="text-sm font-semibold text-slate-800">
                         {format(parseISO(res.reservation_date), 'dd/MM/yyyy')}

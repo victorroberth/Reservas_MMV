@@ -13,8 +13,21 @@ import { Menu, X } from 'lucide-react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('user');
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      // Validate that it's a valid user object with a role
+      if (parsed && typeof parsed === 'object' && parsed.id && parsed.role) {
+        return parsed as User;
+      }
+      localStorage.removeItem('user');
+      return null;
+    } catch (e) {
+      console.error('Failed to parse user from localStorage', e);
+      localStorage.removeItem('user');
+      return null;
+    }
   });
   const [currentView, setCurrentView] = useState<'dashboard' | 'resources' | 'reservations' | 'extraclasse' | 'users'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
