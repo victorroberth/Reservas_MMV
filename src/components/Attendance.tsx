@@ -41,7 +41,7 @@ export default function Attendance({ user }: AttendanceProps) {
     '201 - Informática',
     '202 - Informática para Internet',
     '203 - Veterinária',
-    '300 - Administração',
+    '300 - Marketing',
     '301 - Informática para Internet',
     '302 - Administração',
     'Outros'
